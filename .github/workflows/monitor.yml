@@ -1,0 +1,38 @@
+# Guardar este archivo en: .github/workflows/monitor.yml
+# (dentro de tu repositorio, en esa ruta exacta)
+
+name: Monitor de vuelos EZE-JFK
+
+on:
+  schedule:
+    # Corre todos los días a las 13:00 UTC (10:00 hora Argentina).
+    # La sintaxis es cron estándar: minuto hora día mes día-semana.
+    - cron: "0 13 * * *"
+  workflow_dispatch: {}   # permite ejecutarlo manualmente desde la pestaña "Actions"
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Ejecutar monitor de vuelos
+        env:
+          AMADEUS_API_KEY: ${{ secrets.AMADEUS_API_KEY }}
+          AMADEUS_API_SECRET: ${{ secrets.AMADEUS_API_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BUDGET_USD: "950"          # cambiá este valor por tu presupuesto
+          ORIGIN: "EZE"
+          DESTINATION: "JFK"
+        run: python flight_monitor.py
